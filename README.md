@@ -35,4 +35,28 @@
 - 首次运行需要时间建立缓存，后续会明显更快
 - 该 mod 只处理界面上实际显示出来的文本，不处理图片里的文字
 - 如果游戏更新后 UI 结构变化，可能需要同步调整扫描规则
-- 当前后端配置是中文翻译流程，但整体结构可以很容易改成其他语言
+- 当前后端配置是中文翻译流程，但整体结构可以很容易更改翻译目标为其他语言
+
+# 更改翻译目标为其他语言
+
+本项目默认使用简体中文翻译。如果要改成其他语言，需要修改翻译脚本中的目标 locale 和 DeepSeek 的系统提示，并清空旧缓存。
+
+1. 编辑 `patch/files/scripts/mods/chinese_runtime_cn_translator.gd`
+  1. 找到 `_ready()` 中的两行：
+	```gdscript
+	translation_resource.locale = "zh_CN"
+	TranslationServer.set_locale("zh_CN")
+	```
+	将 `zh_CN` 改成目标语言对应的 Godot locale，例如：
+	- 西班牙语：`"es"`
+	- 法语：`"fr"`
+	- 日语：`"ja"`
+	- 韩语：`"ko"`
+	- 俄语：`"ru"`
+  2. 找到 `_system_prompt()`，将提示改成目标语言，例如：
+	```gdscript
+	return "你是游戏文本翻译器。把用户给出的英文 UI 文本翻译为日文。只返回译文，不要解释。保持换行、数字、标点和占位符不变；形如 __CNUI_D_0__、__CNUI_B_0__ 的占位符必须原样保留。"
+	```
+2. 删除 `cache/translations.json` 或将其翻译为目标语言，这是加速翻译的翻译缓存。
+3. 若目标语言包含非英文字符，则可能需要替换字体文件 `BLKCHCRY.TTF` 和 `Roundo-Medium.otf` 以避免可能的字符缺失（不要改字体文件名）。
+4. 正常安装和使用Mod
