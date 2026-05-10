@@ -28,8 +28,8 @@ var translation_resource = Translation.new()
 func _ready():
 	pause_mode = Node.PAUSE_MODE_PROCESS
 
-	cache_path = globals.modfolder + "ChineseRuntimeCN/cache/translations.json"
-	settings_path = globals.modfolder + "ChineseRuntimeCN/settings.json"
+	cache_path = globals.modfolder + "RuntimeLocaleBridge/cache/translations.json"
+	settings_path = globals.modfolder + "RuntimeLocaleBridge/settings.json"
 	settings.setup(settings_path)
 	_reload_settings_from_store()
 
@@ -60,7 +60,7 @@ func reload_settings():
 	_reload_settings_from_store()
 	fail_until.clear()
 	api_key_missing_logged = false
-	print("ChineseRuntimeCN: DeepSeek settings reloaded")
+	print("RuntimeLocaleBridge: DeepSeek settings reloaded")
 	_pump_queue()
 
 func get_retry_time(source):
@@ -95,7 +95,7 @@ func _queue_translation(source, payload, tokens, callback_owner, callback_method
 
 	if _api_key_missing():
 		if !api_key_missing_logged:
-			print("ChineseRuntimeCN: DeepSeek API key is empty; edit settings.json or the Options panel.")
+			print("RuntimeLocaleBridge: DeepSeek API key is empty; edit settings.json or the Options panel.")
 			api_key_missing_logged = true
 		# 没有密钥时也记一次冷却，避免扫描器每一轮都重复撞同一条文本。
 		_fail_current(source, 0)
@@ -166,7 +166,7 @@ func _start_request(job):
 
 	var err = request_node.request(api_url, headers, true, HTTPClient.METHOD_POST, _build_payload(job.payload))
 	if err != OK:
-		print("ChineseRuntimeCN: DeepSeek request failed, err=", err, ", text=", _trim_for_log(job.source))
+		print("RuntimeLocaleBridge: DeepSeek request failed, err=", err, ", text=", _trim_for_log(job.source))
 		_dispose_request(request_node)
 		_fail_current(job.source, 0)
 		_emit_waiters(job.source, job.source)
@@ -187,41 +187,41 @@ func _on_request_completed(result, response_code, headers, body, request_node):
 	var response_text = body.get_string_from_utf8()
 
 	if result != HTTPRequest.RESULT_SUCCESS || response_code != 200:
-		print("ChineseRuntimeCN: DeepSeek bad response, code=", response_code, ", body=", _trim_for_log(response_text))
+		print("RuntimeLocaleBridge: DeepSeek bad response, code=", response_code, ", body=", _trim_for_log(response_text))
 		_fail_current(source, response_code)
 		_emit_waiters(source, source)
 		return
 
 	var parsed = parse_json(response_text)
 	if typeof(parsed) != TYPE_DICTIONARY || !parsed.has("choices"):
-		print("ChineseRuntimeCN: DeepSeek response parse failed, body=", _trim_for_log(response_text))
+		print("RuntimeLocaleBridge: DeepSeek response parse failed, body=", _trim_for_log(response_text))
 		_fail_current(source, response_code)
 		_emit_waiters(source, source)
 		return
 
 	var choices = parsed["choices"]
 	if typeof(choices) != TYPE_ARRAY || choices.empty():
-		print("ChineseRuntimeCN: DeepSeek response has no choices, text=", _trim_for_log(source))
+		print("RuntimeLocaleBridge: DeepSeek response has no choices, text=", _trim_for_log(source))
 		_fail_current(source, response_code)
 		_emit_waiters(source, source)
 		return
 
 	var choice = choices[0]
 	if typeof(choice) != TYPE_DICTIONARY || !choice.has("message"):
-		print("ChineseRuntimeCN: DeepSeek message missing, text=", _trim_for_log(source))
+		print("RuntimeLocaleBridge: DeepSeek message missing, text=", _trim_for_log(source))
 		_fail_current(source, response_code)
 		_emit_waiters(source, source)
 		return
 
 	if choice.has("finish_reason") && str(choice["finish_reason"]) == "length":
-		print("ChineseRuntimeCN: DeepSeek output truncated, increase max_tokens, text=", _trim_for_log(source))
+		print("RuntimeLocaleBridge: DeepSeek output truncated, increase max_tokens, text=", _trim_for_log(source))
 		_fail_current(source, response_code)
 		_emit_waiters(source, source)
 		return
 
 	var message = choice["message"]
 	if typeof(message) != TYPE_DICTIONARY || !message.has("content"):
-		print("ChineseRuntimeCN: DeepSeek content missing, text=", _trim_for_log(source))
+		print("RuntimeLocaleBridge: DeepSeek content missing, text=", _trim_for_log(source))
 		_fail_current(source, response_code)
 		_emit_waiters(source, source)
 		return
@@ -232,7 +232,7 @@ func _on_request_completed(result, response_code, headers, body, request_node):
 	translated = _decode_entities(translated)
 
 	if _is_bad_translation(source, translated):
-		print("ChineseRuntimeCN: DeepSeek returned unusable translation, text=", _trim_for_log(source))
+		print("RuntimeLocaleBridge: DeepSeek returned unusable translation, text=", _trim_for_log(source))
 		_fail_current(source, response_code)
 		_emit_waiters(source, source)
 		return

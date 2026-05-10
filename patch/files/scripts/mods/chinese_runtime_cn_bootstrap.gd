@@ -5,7 +5,7 @@ var scanner
 var settings_ui
 
 func _ready():
-	name = "ChineseRuntimeCN"
+	name = "RuntimeLocaleBridge"
 	pause_mode = Node.PAUSE_MODE_PROCESS
 	call_deferred("_install")
 
@@ -16,7 +16,7 @@ func _install():
 	var scanner_path = "res://files/scripts/mods/chinese_runtime_cn_scanner.gd"
 	var settings_ui_path = "res://files/scripts/mods/chinese_runtime_cn_settings_ui.gd"
 	if !ResourceLoader.exists(translator_path) || !ResourceLoader.exists(scanner_path):
-		print("ChineseRuntimeCN: runtime scripts missing")
+		print("RuntimeLocaleBridge: runtime scripts missing")
 		return
 
 	# 先放翻译器，再放扫描器，结构简单，职责清楚。
@@ -35,10 +35,10 @@ func _install():
 
 	if translator.is_ready():
 		scanner.scan_now()
-		print("ChineseRuntimeCN: runtime translator started")
+		print("RuntimeLocaleBridge: runtime translator started")
 	else:
 		translator.connect("runtime_ready", scanner, "scan_now")
 		translator.connect("runtime_ready", self, "_on_runtime_ready")
 
 func _on_runtime_ready():
-	print("ChineseRuntimeCN: runtime translator started")
+	print("RuntimeLocaleBridge: runtime translator started")

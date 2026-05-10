@@ -44,7 +44,7 @@ func save_settings():
 	var file = File.new()
 	var err = file.open(settings_path, File.WRITE)
 	if err != OK:
-		print("ChineseRuntimeCN: settings save failed, err=", err)
+		print("RuntimeLocaleBridge: settings save failed, err=", err)
 		return
 
 	file.store_string(to_json(data))

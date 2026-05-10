@@ -14,7 +14,7 @@ func setup(translator_ref, scanner_ref):
 
 func _ready():
 	pause_mode = Node.PAUSE_MODE_PROCESS
-	settings_path = globals.modfolder + "ChineseRuntimeCN/settings.json"
+	settings_path = globals.modfolder + "RuntimeLocaleBridge/settings.json"
 	settings.setup(settings_path)
 	set_process(true)
 	call_deferred("_install_or_update")
@@ -32,17 +32,17 @@ func _install_or_update():
 		return
 
 	var parent = options.get_node("TabContainer/Settings")
-	if parent == installed_parent && parent.has_node("ChineseRuntimeCNDeepSeek"):
-		_sync_controls(parent.get_node("ChineseRuntimeCNDeepSeek"))
+	if parent == installed_parent && parent.has_node("RuntimeLocaleBridgeDeepSeek"):
+		_sync_controls(parent.get_node("RuntimeLocaleBridgeDeepSeek"))
 		return
 
-	if parent.has_node("ChineseRuntimeCNDeepSeek"):
+	if parent.has_node("RuntimeLocaleBridgeDeepSeek"):
 		installed_parent = parent
-		_sync_controls(parent.get_node("ChineseRuntimeCNDeepSeek"))
+		_sync_controls(parent.get_node("RuntimeLocaleBridgeDeepSeek"))
 		return
 
 	var box = VBoxContainer.new()
-	box.name = "ChineseRuntimeCNDeepSeek"
+	box.name = "RuntimeLocaleBridgeDeepSeek"
 	box.set_meta("cnui_skip", true)
 	box.margin_left = 403.0
 	box.margin_top = 225.0
@@ -52,7 +52,7 @@ func _install_or_update():
 
 	var title = Label.new()
 	title.name = "title"
-	title.text = "DeepSeek 翻译"
+	title.text = "Runtime Locale Bridge"
 	box.add_child(title)
 
 	var api_key = LineEdit.new()
@@ -111,4 +111,4 @@ func _on_save_pressed(box):
 		scanner.scan_now()
 
 	box.get_node("status").text = "已保存。可见文本会重新扫描，未缓存文本将使用 DeepSeek。"
-	print("ChineseRuntimeCN: DeepSeek settings saved")
+	print("RuntimeLocaleBridge: DeepSeek settings saved")

@@ -39,7 +39,7 @@ func _process(delta):
 func _scan_node(node):
 	if node == null:
 		return
-	if node.get_name() == "ChineseRuntimeCN":
+	if node.get_name() == "RuntimeLocaleBridge":
 		return
 	if node.has_meta("cnui_skip") && node.get_meta("cnui_skip"):
 		return
