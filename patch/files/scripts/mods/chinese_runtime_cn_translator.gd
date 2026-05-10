@@ -1,6 +1,6 @@
 extends Node
 
-# 翻译顺序：手工词典 -> Godot 缓存 -> 本地 JSON 缓存 -> DeepSeek。
+# 翻译顺序：Godot 缓存 -> 本地 JSON 缓存 -> DeepSeek。
 # 网络请求只处理缓存缺失项，避免重复翻译和重复消耗 API 额度。
 signal runtime_ready
 
@@ -21,7 +21,6 @@ var waiters = {}
 var runtime_ready_flag = false
 
 var settings = load("res://files/scripts/mods/chinese_runtime_cn_settings.gd").new()
-var manual = load("res://files/scripts/mods/chinese_runtime_cn_manual.gd").new()
 var tools = load("res://files/scripts/mods/chinese_runtime_cn_text_tools.gd").new()
 var translation_resource = Translation.new()
 
@@ -80,12 +79,6 @@ func _queue_translation(source, payload, tokens, callback_owner, callback_method
 
 	if !tools.has_translatable_text(source):
 		callback_owner.call(callback_method, source, source, token)
-		return
-
-	var manual_text = manual.translate(source)
-	if manual_text != null:
-		_remember_translation(source, manual_text)
-		callback_owner.call(callback_method, source, manual_text, token)
 		return
 
 	var cached = _lookup_cached(source)
