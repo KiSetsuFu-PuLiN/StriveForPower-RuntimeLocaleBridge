@@ -20,7 +20,7 @@
 
 ## 使用方法
 
-1. 将整个 mod 放到 `Strive/mods/RuntimeLocaleBridge`
+1. 将整个 mod 放到模组文件夹 `mods` 之下，你可以在游戏内的模组设置中找到这个位置
 2. 启动游戏并启用该 mod
 3. 打开游戏内 `Options -> Settings`
 4. 填写 `DeepSeek API Key`
@@ -28,7 +28,6 @@
 
 ## 配置文件
 
-- `settings.json`：保存 DeepSeek 相关设置
 - `cache/translations.json`：翻译缓存，后续会自动复用
 
 ## 说明
