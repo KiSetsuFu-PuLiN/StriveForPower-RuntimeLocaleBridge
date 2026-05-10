@@ -1,0 +1,6 @@
+运行时中文化 mod。
+
+扫描可见界面文本，先走 Godot/本地缓存和少量手工短词典，缓存缺失时使用 DeepSeek Chat Completions 翻译。
+
+配置位置：ChineseRuntimeCN/settings.json
+可在游戏 Options -> Settings 中填写 DeepSeek API Key。已翻译文本会写入 cache/translations.json，后续不会重复请求。
