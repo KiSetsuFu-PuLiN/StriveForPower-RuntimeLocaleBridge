@@ -1,3 +1,5 @@
+中文 | [English](README_en.md)
+
 ![翻译预览](Snipaste_2026-05-11_01-54-10.png)
 
 运行时文本翻译桥。当前版本面向 `Strive for Power 1.0d` 的界面中文化，默认翻译到简体中文。
