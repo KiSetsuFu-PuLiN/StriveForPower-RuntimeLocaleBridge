@@ -1,6 +1,6 @@
 extends Node
 
-# 翻译顺序：Godot 缓存 -> 本地 JSON 缓存 -> 手工短词典 -> DeepSeek。
+# 翻译顺序：手工词典 -> Godot 缓存 -> 本地 JSON 缓存 -> DeepSeek。
 # 网络请求只处理缓存缺失项，避免重复翻译和重复消耗 API 额度。
 signal runtime_ready
 
@@ -82,15 +82,15 @@ func _queue_translation(source, payload, tokens, callback_owner, callback_method
 		callback_owner.call(callback_method, source, source, token)
 		return
 
-	var cached = _lookup_cached(source)
-	if cached != null:
-		callback_owner.call(callback_method, source, cached, token)
-		return
-
 	var manual_text = manual.translate(source)
 	if manual_text != null:
 		_remember_translation(source, manual_text)
 		callback_owner.call(callback_method, source, manual_text, token)
+		return
+
+	var cached = _lookup_cached(source)
+	if cached != null:
+		callback_owner.call(callback_method, source, cached, token)
 		return
 
 	if _api_key_missing():
@@ -126,7 +126,8 @@ func _lookup_cached(source):
 	return null
 
 func _remember_translation(source, translated):
-	if _is_bad_translation(source, translated):
+	translated = _sanitize_translation(source, translated)
+	if translated == null:
 		return
 	if cache.has(source) && cache[source] == translated:
 		return
@@ -226,12 +227,8 @@ func _on_request_completed(result, response_code, headers, body, request_node):
 		_emit_waiters(source, source)
 		return
 
-	var translated = str(message["content"]).strip_edges()
-	if tokens != null:
-		translated = tools.unshield_tokens(translated, tokens)
-	translated = _decode_entities(translated)
-
-	if _is_bad_translation(source, translated):
+	var translated = _sanitize_translation(source, message["content"], tokens)
+	if translated == null:
 		print("RuntimeLocaleBridge: DeepSeek returned unusable translation, text=", _trim_for_log(source))
 		_fail_current(source, response_code)
 		_emit_waiters(source, source)
@@ -300,6 +297,27 @@ func _reload_settings_from_store():
 func _api_key_missing():
 	return api_key.strip_edges() == ""
 
+func _sanitize_translation(source, translated, tokens = null):
+	if typeof(translated) != TYPE_STRING:
+		return null
+
+	var text = str(translated).strip_edges()
+	if text == "":
+		return null
+
+	if tokens != null:
+		text = tools.unshield_tokens(text, tokens)
+	text = _decode_entities(text)
+
+	if text.to_upper().find("_CNUI_") >= 0:
+		var shield = tools.shield_tokens(source)
+		if shield.tokens.size() > 0:
+			text = tools.unshield_tokens(text, shield.tokens)
+
+	if _is_bad_translation(source, text):
+		return null
+	return text
+
 func _is_bad_translation(source, translated):
 	if typeof(translated) != TYPE_STRING:
 		return true
@@ -309,6 +327,8 @@ func _is_bad_translation(source, translated):
 	if text.find("QUERY LENGTH LIMIT EXCEEDED") >= 0:
 		return true
 	if text.find("MAX ALLOWED QUERY") >= 0:
+		return true
+	if text.to_upper().find("_CNUI_") >= 0:
 		return true
 	if text == source && tools.has_translatable_text(source):
 		return true
@@ -351,10 +371,13 @@ func _load_cache():
 	cache = {}
 	var removed_bad_entries = false
 	for source in parsed.keys():
-		var translated = str(parsed[source])
-		if _is_bad_translation(source, translated):
+		var original = parsed[source]
+		var translated = _sanitize_translation(source, original)
+		if translated == null:
 			removed_bad_entries = true
 			continue
+		if str(original).strip_edges() != translated:
+			removed_bad_entries = true
 		cache[source] = translated
 		translation_resource.add_message(source, translated)
 
@@ -367,5 +390,5 @@ func _save_cache():
 	if err != OK:
 		return
 
-	file.store_string(to_json(cache))
+	file.store_string(JSON.print(cache, "    "))
 	file.close()

@@ -23,6 +23,8 @@ func unshield_tokens(text, tokens):
 	var result = text
 	for item in tokens:
 		result = result.replace(item.token, item.source)
+		if item.token.begins_with("__"):
+			result = result.replace(item.token.substr(1), item.source)
 	return result
 
 func _shield_with_regex(text, regex, prefix, tokens):
